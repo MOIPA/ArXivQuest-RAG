@@ -119,16 +119,15 @@ class ArXivQA:
             name = p_info["name"]
             prompt_template = p_info["prompt_template"]
             prompt = ChatPromptTemplate.from_template(template=prompt_template)
-            chain = LLMChain(llm=llm, prompt=prompt)
+            chain = LLMChain(llm=self.llm, prompt=prompt)
             destination_chains[name] = chain  
             
         # 给定名字和子链的描述，让路由链决定哪个name更合适回答当前的问题
         destinations = [f"{p['name']}: {p['description']}" for p in prompt_infos]
         destinations_str = "\n".join(destinations)
-        print(destinations_str)
         # 路由链实在找不到可用的子链，就用默认链
         default_prompt = ChatPromptTemplate.from_template("{input}")
-        default_chain = LLMChain(llm=llm, prompt=default_prompt)
+        default_chain = LLMChain(llm=self.llm, prompt=default_prompt)
 
 
         # 路由链需要两个输入，所有子链和对应描述，当前任务
@@ -172,7 +171,7 @@ class ArXivQA:
             output_parser=RouterOutputParser(),
         )
 
-        router_chain = LLMRouterChain.from_llm(llm, router_prompt)
+        router_chain = LLMRouterChain.from_llm(self.llm, router_prompt)
 
         chain = MultiPromptChain(router_chain=router_chain, 
                                 destination_chains=destination_chains, 
@@ -203,7 +202,6 @@ class ArXivQA:
         output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
         # 获得格式化输出
         format_instructions = output_parser.get_format_instructions()
-        print(format_instructions)
         # 使用输出解析器的提示词
         review_template_2 = """\
         For the following text, extract the following information:
@@ -229,9 +227,8 @@ class ArXivQA:
         prompt = ChatPromptTemplate.from_template(template=review_template_2)
         messages = prompt.format_messages(final_answer=self.answer,format_instructions=format_instructions)
         # 得到了使用输出解析器的prompt，调用模型
-        response = llm(messages)
-        parse = output_parser.parse(response.content) 
-        self.result_dict=format_result(parse)
+        response = self.llm(messages)
+        self.result_dict=output_parser.parse(response.content) 
 
     def check_is_bad_answer(self):
 
@@ -249,7 +246,6 @@ class ArXivQA:
         output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
         # 获得格式化输出
         format_instructions = output_parser.get_format_instructions()
-        print(format_instructions)
         # 使用输出解析器的提示词
         review_template_2 = """\
         For the following text, extract the following information:
@@ -268,7 +264,10 @@ class ArXivQA:
         prompt = ChatPromptTemplate.from_template(template=review_template_2)
         messages = prompt.format_messages(answer=self.answer,question=self.optimized_question,format_instructions=format_instructions)
         # 得到了使用输出解析器的prompt，调用模型
-        response = llm(messages)
+        response = self.llm(messages)
+        if response == None or response.content==None:
+            print("can't judge is bad answer")
+            return
         self.is_bad = output_parser.parse(response.content) 
 
     # 预处理问题，翻译并且优化问题
@@ -277,13 +276,13 @@ class ArXivQA:
             "This is the user's Chinese question. Please translate it into an English question.:"
             "\n\n{Question}"
         )
-        chain_translate = LLMChain(llm=llm, prompt=user_question_prompt)
+        chain_translate = LLMChain(llm=self.llm, prompt=user_question_prompt)
 
         optimize_prompt = ChatPromptTemplate.from_template(
             "Optimize and expand the user's questions, and specify which field the questions belong to. \
             Question:{company_name}"
         )
-        chain_optimize = LLMChain(llm=llm, prompt=optimize_prompt)
+        chain_optimize = LLMChain(llm=self.llm, prompt=optimize_prompt)
         
         self._preproceed_chain = SimpleSequentialChain(chains=[chain_translate, chain_optimize],verbose=True)
         self.optimized_question = self._preproceed_chain.run(self.original_question)
@@ -314,7 +313,7 @@ class ArXivQA:
             <<< TEXT END>>>
             """
         )
-        chain = LLMChain(llm=llm, prompt=prompt)
+        chain = LLMChain(llm=self.llm, prompt=prompt)
         self.answer = chain.run(self.answer)
         self.optimized_question = chain.run(self.optimized_question)
         self.result_dict['final answer']=chain.run(self.result_dict['final answer'])
@@ -345,3 +344,18 @@ class ArXivQA:
         # if self.language == 'Chinese':
         #     self.translateToChinese()
 
+
+def read_and_print_input():
+    while True:
+        user_input = input("请输入问题（输入quit退出）：")
+        if user_input == "quit":
+            break
+        qa = ArXivQA()
+        qa.answer_question(question=user_input)
+        qa.translateToChinese()
+        print("回答结果：")
+        print(qa.encapsule())
+        print("回答结束，请重新输入问题：")
+
+if __name__ == "__main__":
+    read_and_print_input()
