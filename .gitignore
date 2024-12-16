@@ -5,7 +5,8 @@ __pycache__/
 all-MiniLM-L12-v2
 # C extensions
 *.so
-
+arxiv/
+milvus/
 # Distribution / packaging
 .Python
 build/

@@ -1,0 +1,47 @@
+{
+  "id": "0704.0001",
+  "submitter": "Pavel Nadolsky",
+  "authors": "tr",
+  "title": "Calculation of prompt diphoton production cross sections aties",
+  "comments": "37 pages, 15 figures; published version",
+  "journal-ref": "Phys.Rev.D76:013009,2007",
+  "doi": "10.1103/PhysRevD.76.013009",
+  "report-no": "ANL-HEP-PR-07-12",
+  "categories": "hep-ph",
+  "license": "None",
+  "abstract": "  A fully differential calculation ..i..with ..\n",
+  "versions": [
+    {
+      "version": "v1",
+      "created": "Mon, 2 Apr 2007 19:18:42 GMT"
+    },
+    {
+      "version": "v2",
+      "created": "Tue, 24 Jul 2007 20:10:27 GMT"
+    }
+  ],
+  "update_date": "2008-11-26",
+  "authors_parsed": [
+    [
+      "Balázs",
+      "C.",
+      ""
+    ],
+    [
+      "Berger",
+      "E. L.",
+      ""
+    ],
+    [
+      "Nadolsky",
+      "P. M.",
+      ""
+    ],
+    [
+      "Yuan",
+      "C. -P.",
+      ""
+    ]
+  ],
+  "abstract_vector": "array()"
+}
