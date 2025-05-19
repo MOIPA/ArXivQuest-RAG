@@ -1,6 +1,5 @@
 # ArXivQuest-RAG
+
+所学技术实践
+
 NJU practice
-
-![alt text](image.png)
-
-![alt text](image-1.png)
